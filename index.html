@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>JetStream</title>
+  </head>
+  <body>
+    <script type="text/javascript" src="jetstream.js"></script>
+    <script type="text/javascript" src="adaptors/default.js"></script>
+    <script type="text/javascript">
+      var allUsers = jet('users');
+      console.log(allUsers);
+      
+      var adults = jet('users').filter(function(user) {
+        return (user.age > 20);
+      });
+      console.log(adults);
+      
+      jet('users').each(function(i, v) {
+        console.log(v.name + " is " + v.age + " years old.");
+      });
+      
+      var usersInTheirTwenties = jet('users').filter(function(user) {
+        return (user.age >= 20 && user.age <= 29);
+      });
+      console.log("These users are in their twenties:");
+      usersInTheirTwenties.each(function(i, user) {
+        console.log(user.name);
+      });
+      
+      console.log("This is all of the users:");
+      allUsers.each(function(i, user) {
+        console.log(user.name);
+      });
+    </script>
+  </body>
+</html>
