@@ -7,44 +7,40 @@ JetStream.prototype = {
   
   init: function(table) {
     this.table = table;
-    this.datasource = JetStream.adaptor.all(table);
-    this.length = this.datasource.length;
+    this.dataset = JetStream.adaptor.all(table);
+    this.length = this.dataset.length;
     return this;
   },
   
   options: {},
   
   filter: function(callback) {
-    this.datasource = this.datasource.filter(callback);
-    this.length = this.datasource.length;
+    this.dataset = this.dataset.filter(callback);
+    this.length = this.dataset.length;
     return this;
   },
   
   each: function(callback) {
-    for (var x = 0; x < this.length; x++) {
-      var result = callback(x, this.datasource[x]);
-      if (result === false) {
-        break;
-      }
-    }
+    for (var value = this.dataset[0], i = 0;
+				i < this.length && callback.call(value, i, value) !== false; value = this.dataset[++i]) {}
   },
   
   get: function(index) {
-    return (index > -1 && index < this.length) ? this.datasource[index] : null;
-  },
+		return index == null ? this.dataset : (index < 0 ? this.dataset.slice(index)[0] : this.dataset[index]);
+	},
   
   attr: function(name, value) {
-    if (this.length == 0 || !(name in this.datasource[0])) {
+    if (this.length == 0 || !(name in this.dataset[0])) {
       return null;
     }
     
     if (typeof value !== "undefined") {
       for (var x = 0; x < this.length; x++) {
-        this.datasource[x][name] = value;
-        JetStream.adaptor.save(this.table, this.datasource[x]);
+        this.dataset[x][name] = value;
+        JetStream.adaptor.save(this.table, this.dataset[x]);
       }
     } else {
-      return this.datasource[0][name];
+      return this.dataset[0][name];
     }
   }
 };

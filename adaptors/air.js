@@ -84,4 +84,4 @@ JetStreamAirAdaptor.prototype = {
 };
 
 var JetStream = JetStream || {};
-JetStream.adaptor = JetStream.adaptor || new JetStreamDefaultAdaptor();
+JetStream.adaptor = JetStream.adaptor || new JetStreamAirAdaptor();
