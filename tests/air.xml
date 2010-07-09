@@ -4,7 +4,7 @@
 	<filename>lawnchar-test</filename>
 	<version>0.1.0</version>
 	<initialWindow>
-		<content>spec/adaptors/air.html</content>
+		<content>index.html</content>
 		<visible>true</visible>
 		<width>800</width>
 		<height>600</height>
