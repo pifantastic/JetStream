@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<application xmlns="http://ns.adobe.com/air/application/2.0">
+	<id>com.funkatron.app.lawnchair-test</id>
+	<filename>lawnchar-test</filename>
+	<version>0.1.0</version>
+	<initialWindow>
+		<content>spec/adaptors/air.html</content>
+		<visible>true</visible>
+		<width>800</width>
+		<height>600</height>
+		<x>50</x>
+		<y>50</y>
+	</initialWindow>
+</application>
