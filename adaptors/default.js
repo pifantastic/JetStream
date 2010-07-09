@@ -18,6 +18,10 @@ JetStreamDefaultAdaptor.prototype = {
   data: {},
   next: 1,
   
+  init: function() {
+  
+  },
+  
   all: function(table) {
     return this.data[table];
   },
@@ -48,6 +52,10 @@ JetStreamDefaultAdaptor.prototype = {
         }
       }
     }
+  },
+  
+  query: function(query, params) {
+    return this.data['users'];
   }
 };
 
