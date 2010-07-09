@@ -1,4 +1,6 @@
 
+(function(window, undefined) {
+
 var JetStream = function(table) {
   return new JetStream.prototype.init(table);
 }
@@ -43,8 +45,6 @@ JetStream.prototype = {
     return this;
   },
   
-  options: {},
-  
   filter: function(callback) {
     this.dataset = this.dataset.filter(callback);
     this.length = this.dataset.length;
@@ -53,12 +53,13 @@ JetStream.prototype = {
   
   each: function(callback) {
     for (var value = this.dataset[0], i = 0;
-				i < this.length && callback.call(value, i, value) !== false; value = this.dataset[++i]) {}
+      i < this.length && callback.call(value, i, value) !== false; value = this.dataset[++i]) {}
+    return this;
   },
   
   get: function(index) {
-		return index == null ? this.dataset : (index < 0 ? this.dataset.slice(index)[0] : this.dataset[index]);
-	},
+    return index == null ? this.dataset : (index < 0 ? this.dataset.slice(index)[0] : this.dataset[index]);
+  },
   
   attr: function(name, value) {
     if (this.length == 0 || !(name in this.dataset[0])) {
@@ -77,4 +78,6 @@ JetStream.prototype = {
 };
 
 JetStream.prototype.init.prototype = JetStream.prototype;
-var jet = JetStream;
+window.jet = window.JetStream = JetStream;
+
+})(window);
