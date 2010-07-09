@@ -1,3 +1,7 @@
+# JetStream
+
+JetStream tries to bring the beauty and simplicity of the the jQuery API to databases.
+    
     // Get all users who are older than 20 years.
     var adults = jet('users').filter(function(user) {
       return (user.age > 20);
