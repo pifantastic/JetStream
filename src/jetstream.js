@@ -32,10 +32,10 @@ JetStream.prototype = {
     // Test for a column expression
     if (match = JetStream.COL.exec(expr)) {
       this.table = match[0];
-			var where = JetStream.WHERE[match[2]];
+      var where = JetStream.WHERE[match[2]];
       var query = "SELECT * FROM " + table + " WHERE " + match[1] + " " + where[0] + " ?";
       this.dataset = JetStream.adaptor.query(query, [where[1].replace(':value', match[4])]);
-    
+
     // Get all data for table
     } else {
       this.table = table;
