@@ -8,11 +8,11 @@ var JetStream = function(table) {
 JetStream.TABLE = /^((?:[\w\u00c0-\uFFFF\*-]|\\.)+)/;
 JetStream.COL = /\[\s*((?:[\w\u00c0-\uFFFF-]|\\.)+)\s*(?:(\S?=)\s*(['"]*)(.*?)\3|)\s*\]/;
 JetStream.WHERE = {
-  '*=': "WHERE %s LIKE '%%s%'",
-  '$=': "WHERE %s LIKE '%%s'",
-  '=':  "WHERE %s = '%s'",
-  '!=': "WHERE %s != '%s'",
-  '^=': "WHERE %s LIKE '%s%'"
+  '*=': ["LIKE", "%:value%"],
+  '$=': ["LIKE", "%:value"],
+  '=':  ["=", ":value"],
+  '!=': ["!=", ":value"],
+  '^=': ["LIKE", ":value%"]
 };
 
 JetStream.prototype = {
@@ -32,8 +32,9 @@ JetStream.prototype = {
     // Test for a column expression
     if (match = JetStream.COL.exec(expr)) {
       this.table = match[0];
-      var query = "SELECT * FROM " + table + " " + JetStream.WHERE[match[2]];
-      this.dataset = JetStream.adaptor.query(query, [match[1], match[3]]);
+			var where = JetStream.WHERE[match[2]];
+      var query = "SELECT * FROM " + table + " WHERE " + match[1] + " " + where[0] + " ?";
+      this.dataset = JetStream.adaptor.query(query, [where[1].replace(':value', match[4])]);
     
     // Get all data for table
     } else {
@@ -46,7 +47,7 @@ JetStream.prototype = {
   },
   
   filter: function(callback) {
-    this.dataset = this.dataset.filter(callback);
+    this.dataset = this.dataset.filter(callback, this);
     this.length = this.dataset.length;
     return this;
   },
@@ -71,6 +72,7 @@ JetStream.prototype = {
         this.dataset[x][name] = value;
         JetStream.adaptor.save(this.table, this.dataset[x]);
       }
+			return this;
     } else {
       return this.dataset[0][name];
     }
@@ -81,3 +83,4 @@ JetStream.prototype.init.prototype = JetStream.prototype;
 window.jet = window.JetStream = JetStream;
 
 })(window);
+

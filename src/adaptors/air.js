@@ -7,14 +7,15 @@ JetStreamAirAdaptor.prototype = {
   
   defaults: {
     primary_key: 'rowid',
-    database: null//air.File.applicationStorageDirectory.resolvePath("database.sqlite.db")
+    database: null
   },
   
   init: function(options) {
+		options = options || {};
     var opts = (typeof arguments[0] == 'string') ? {table: options} : options;
     this.primary_key = opts.primary_key || this.defaults.primary_key;
     this.database = opts.database || this.defaults.database;
-    
+
     this.connection = new air.SQLConnection();
     try {
       this.connection.open(this.database);
@@ -30,8 +31,8 @@ JetStreamAirAdaptor.prototype = {
   
   query: function(query, params) {
     var statement = new air.SQLStatement();
-		statement.sqlConnection = this.conn;
-		statement.text = sql;
+		statement.sqlConnection = this.connection;
+		statement.text = query;
 		
 		if (params) {
 			for (var key in params) {
@@ -40,8 +41,9 @@ JetStreamAirAdaptor.prototype = {
 		}
 
 		try {
+			log(query, params);
 			statement.execute();
-			var result = stmt.getResult();
+			var result = statement.getResult();
 			this.lastInsertID = result.lastInsertRowID;
 			return !result.data ? [] : result.data;
 		} catch(err) {
