@@ -5,8 +5,15 @@ var JetStream = function(expr, obj) {
   return new JetStream.fn.init(expr, obj);
 }
 
-JetStream.TABLE = /^((?:[\w\u00c0-\uFFFF\*-]|\\.)+)/;
-JetStream.COL = /\[\s*((?:[\w\u00c0-\uFFFF-]|\\.)+)\s*(?:(\S?=)\s*(['"]*)(.*?)\3|)\s*\]/;
+JetStream.regex = {
+  // Matches a simple table name
+  TABLE: /^((?:[\w\u00c0-\uFFFF\*-]|\\.)+)/,
+
+  // Matches a column expression
+  COL: /\[\s*((?:[\w\u00c0-\uFFFF-]|\\.)+)\s*(?:(\S?=)\s*(['"]*)(.*?)\3|)\s*\]/
+}
+
+// Translate column expression operators to SQL
 JetStream.WHERE = {
   '*=': ["LIKE", "%:value%"],
   '$=': ["LIKE", "%:value"],
@@ -14,12 +21,14 @@ JetStream.WHERE = {
   '!=': ["!=", ":value"],
   '^=': ["LIKE", ":value%"]
 };
+
+// Cache table results
 JetStream.CACHE = {};
 
 JetStream.fn = JetStream.prototype = {
   
   init: function(expr, obj) {
-    var match = JetStream.TABLE.exec(expr);
+    var match = JetStream.regex.TABLE.exec(expr);
     
     // Invalid expression
     if (!match) {
@@ -42,7 +51,7 @@ JetStream.fn = JetStream.prototype = {
     }
     
     // Test for a column expression
-    else if (match = JetStream.COL.exec(expr)) {
+    else if (match = JetStream.regex.COL.exec(expr)) {
       var where = JetStream.WHERE[match[2]];
       var query = "SELECT * FROM " + this.table + " WHERE " + match[1] + " " + where[0] + " ?";
       this.dataset = JetStream.adaptor.query(query, [where[1].replace(':value', match[4])]);
@@ -80,6 +89,7 @@ JetStream.fn = JetStream.prototype = {
       return null;
     }
     
+    // Set
     if (typeof value !== "undefined") {
       for (var x = 0; x < this.length; x++) {
         this.dataset[x][name] = value;
@@ -87,6 +97,8 @@ JetStream.fn = JetStream.prototype = {
       }
       delete JetStream.CACHE[this.table];
 			return this;
+		
+		// Get
     } else {
       return this.dataset[0][name];
     }
@@ -94,7 +106,7 @@ JetStream.fn = JetStream.prototype = {
   
   del: function() {
     for (var x = 0; x < this.length; x++) {
-      JetStream.del(this.dataset[x]);
+      JetStream.adaptor.del(this.dataset[x]);
     }
   }
 };
