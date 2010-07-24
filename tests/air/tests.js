@@ -15,20 +15,20 @@ var log = air.Introspector.Console.log;
 var database = new air.File(air.File.applicationDirectory.nativePath + "/tests/air/database.sqlite");
 database.moveToTrash();
 
-JetStream.adaptor = new JetStreamAirAdaptor({
-	database: database,
-	primaryKey: "id",
-	schema: {
-	  magical_creatures: {
-	    id: "INTEGER PRIMARY KEY NOT NULL",
-	    name: "VARCHAR",
-	    age: "INTEGER",
-	    strength: "INTEGER",
-	    agility: "INTEGER",
-	    intelligence: "INTEGER",
-	    species: "VARCHAR"
-	  }
-	}
+jet.adaptor = new JetStreamAirAdaptor({
+  database: database,
+  primaryKey: "id",
+  schema: {
+    magical_creatures: {
+      id: "INTEGER PRIMARY KEY NOT NULL",
+      name: "VARCHAR",
+      age: "INTEGER",
+      strength: "INTEGER",
+      agility: "INTEGER",
+      intelligence: "INTEGER",
+      species: "VARCHAR"
+    }
+  }
 });
 
 module("AIR");
@@ -44,15 +44,15 @@ test("Creating", function() {
 });
 
 test("Selecting", function() {
-	equals(jet("magical_creatures").length, 5, "Select all creatures");
-	equals(jet("magical_creatures[species='Dragon']").length, 2, "Select all dragons");
-	equals(jet('magical_creatures[name=Bill]').attr("name"), 'Bill', "Find Bill");
+  equals(jet("magical_creatures").length, 5, "Select all creatures");
+  equals(jet("magical_creatures[species='Dragon']").length, 2, "Select all dragons");
+  equals(jet('magical_creatures[name=Bill]').attr("name"), 'Bill', "Find Bill");
 });
 
 test("Updating", function() {
-	equals(jet('magical_creatures[name=Bill]').attr("name", 'Bruno').attr("name"), 'Bruno', "Change Bill's name to Bruno");
+  equals(jet('magical_creatures[name=Bill]').attr("name", 'Bruno').attr("name"), 'Bruno', "Change Bill's name to Bruno");
 });
 
 test("Filtering", function() {
-	equals(jet("magical_creatures").filter(function(creature) { return (creature.age < 200); }).length, 3, "Select all creatures younger than 200");
+  equals(jet("magical_creatures").filter(function(creature) { return (creature.age < 200); }).length, 3, "Select all creatures younger than 200");
 })

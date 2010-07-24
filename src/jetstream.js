@@ -2,7 +2,7 @@
 (function(window, undefined) {
 
 var JetStream = function(expr, obj) {
-  return new JetStream.prototype.init(expr, obj);
+  return new JetStream.fn.init(expr, obj);
 }
 
 JetStream.TABLE = /^((?:[\w\u00c0-\uFFFF\*-]|\\.)+)/;
@@ -16,7 +16,7 @@ JetStream.WHERE = {
 };
 JetStream.CACHE = {};
 
-JetStream.prototype = {
+JetStream.fn = JetStream.prototype = {
   
   init: function(expr, obj) {
     var match = JetStream.TABLE.exec(expr);
@@ -99,7 +99,7 @@ JetStream.prototype = {
   }
 };
 
-JetStream.prototype.init.prototype = JetStream.prototype;
+JetStream.fn.init.prototype = JetStream.fn;
 window.jet = window.JetStream = JetStream;
 
 })(window);
