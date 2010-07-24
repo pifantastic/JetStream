@@ -6,19 +6,29 @@ JetStreamAirAdaptor.prototype = {
   lastInsertID: null,
   
   defaults: {
-    primary_key: 'rowid',
-    database: null
+    primaryKey: 'rowid',
+    database: null,
+    schema: {}
   },
   
   init: function(options) {
 		options = options || {};
     var opts = (typeof arguments[0] == 'string') ? {table: options} : options;
-    this.primary_key = opts.primary_key || this.defaults.primary_key;
+    this.primaryKey = opts.primaryKey || this.defaults.primaryKey;
     this.database = opts.database || this.defaults.database;
+    this.schema = opts.schema || this.defaults.schema;
 
     this.connection = new air.SQLConnection();
     try {
       this.connection.open(this.database);
+      
+      for (table in this.schema) {
+        var columns = [];
+        for (column in this.schema[table]) {
+          columns.push(column + " " + this.schema[table][column]);
+        }
+        this.query("CREATE TABLE IF NOT EXISTS " + table + " (" + columns.join(', ') + ")");
+      }
     } catch(err) {
       air.trace('Error msg:' + err.message);
       air.trace('Error details:' + err.details);
@@ -57,13 +67,13 @@ JetStreamAirAdaptor.prototype = {
 		var self = this, cols = [], vals = [];
     
     for (var prop in obj) {
-      if (prop !== this.primary_key) {
+      if (prop !== this.primaryKey) {
         cols.push(prop);
         vals.push(obj[prop]);
       }
     }
-		
-		if (!(this.primary_key in obj)) {
+    
+		if (!(this.primaryKey in obj)) {
 			var sql = "INSERT INTO " + table + " (" + cols.join(', ') + ") " +
 				"VALUES (" + vals.map(function() { return '?'; }).join(', ') + ')';
 
@@ -73,15 +83,15 @@ JetStreamAirAdaptor.prototype = {
 		} else {
 			var sql = "UPDATE " + table + " " +
 				"SET " + cols.join(' = ?, ') + " = ? " + 
-				"WHERE " + this.primary_key + " = ?";
+				"WHERE " + this.primaryKey + " = ?";
 
-			vals.push(obj[this.primary_key]);
+			vals.push(obj[this.primaryKey]);
 			return this.query(sql, vals);
 		}
   },
   
   del: function(table, obj) {
-    return this.query("DELETE FROM " + table + " WHERE " + this.primary_key + " = ?", obj[this.primary_key]);
+    return this.query("DELETE FROM " + table + " WHERE " + this.primaryKey + " = ?", obj[this.primaryKey]);
   }
 };
 

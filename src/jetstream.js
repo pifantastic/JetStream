@@ -1,8 +1,8 @@
 
 (function(window, undefined) {
 
-var JetStream = function(table) {
-  return new JetStream.prototype.init(table);
+var JetStream = function(expr, obj) {
+  return new JetStream.prototype.init(expr, obj);
 }
 
 JetStream.TABLE = /^((?:[\w\u00c0-\uFFFF\*-]|\\.)+)/;
@@ -14,10 +14,11 @@ JetStream.WHERE = {
   '!=': ["!=", ":value"],
   '^=': ["LIKE", ":value%"]
 };
+JetStream.CACHE = {};
 
 JetStream.prototype = {
   
-  init: function(expr) {
+  init: function(expr, obj) {
     var match = JetStream.TABLE.exec(expr);
     
     // Invalid expression
@@ -27,19 +28,31 @@ JetStream.prototype = {
       return this;
     }
     
-    var table = match[1];
+    this.table = match[1];
+    
+    // Insert a new row
+    if (typeof obj != "undefined") {
+      JetStream.adaptor.save(this.table, obj);
+      obj[JetStream.adaptor.primaryKey] = JetStream.adaptor.lastInsertID;
+      this.dataset = [obj];
+      
+      if (this.table in JetStream.CACHE) {
+        JetStream.CACHE[this.table].push(obj);
+      }
+    }
     
     // Test for a column expression
-    if (match = JetStream.COL.exec(expr)) {
-      this.table = match[0];
+    else if (match = JetStream.COL.exec(expr)) {
       var where = JetStream.WHERE[match[2]];
-      var query = "SELECT * FROM " + table + " WHERE " + match[1] + " " + where[0] + " ?";
+      var query = "SELECT * FROM " + this.table + " WHERE " + match[1] + " " + where[0] + " ?";
       this.dataset = JetStream.adaptor.query(query, [where[1].replace(':value', match[4])]);
 
     // Get all data for table
     } else {
-      this.table = table;
-      this.dataset = JetStream.adaptor.all(table);
+      if (!(this.table in JetStream.CACHE)) {
+        JetStream.CACHE[this.table] = JetStream.adaptor.all(this.table);
+      }
+      this.dataset = JetStream.CACHE[this.table].slice(0);
     }
     
     this.length = this.dataset.length;
@@ -72,9 +85,16 @@ JetStream.prototype = {
         this.dataset[x][name] = value;
         JetStream.adaptor.save(this.table, this.dataset[x]);
       }
+      delete JetStream.CACHE[this.table];
 			return this;
     } else {
       return this.dataset[0][name];
+    }
+  },
+  
+  del: function() {
+    for (var x = 0; x < this.length; x++) {
+      JetStream.del(this.dataset[x]);
     }
   }
 };
