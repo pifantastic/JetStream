@@ -14,7 +14,7 @@ JetStream.regex = {
 }
 
 // Translate column expression operators to SQL
-JetStream.WHERE = {
+var WHERE = {
   '*=': ["LIKE", "%:value%"],
   '$=': ["LIKE", "%:value"],
   '=':  ["=", ":value"],
@@ -52,7 +52,7 @@ JetStream.fn = JetStream.prototype = {
     
     // Test for a column expression
     else if (match = JetStream.regex.COL.exec(expr)) {
-      var where = JetStream.WHERE[match[2]];
+      var where = WHERE[match[2]];
       var query = "SELECT * FROM " + this.table + " WHERE " + match[1] + " " + where[0] + " ?";
       this.dataset = JetStream.adaptor.query(query, [where[1].replace(':value', match[4])]);
 
