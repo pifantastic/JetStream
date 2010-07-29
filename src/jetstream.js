@@ -10,7 +10,10 @@ JetStream.regex = {
   TABLE: /^((?:[\w\u00c0-\uFFFF\*-]|\\.)+)/,
 
   // Matches a column expression
-  COL: /\[\s*((?:[\w\u00c0-\uFFFF-]|\\.)+)\s*(?:(\S?=)\s*(['"]*)(.*?)\3|)\s*\]/
+  COL: /\[\s*((?:[\w\u00c0-\uFFFF-]|\\.)+)\s*(?:(\S?=)\s*(['"]*)(.*?)\3|)\s*\]/,
+  
+  // Matches SQL queries
+  SQL: /^\s*(select|insert|update|delete)/i
 }
 
 // Translate column expression operators to SQL
@@ -40,7 +43,7 @@ JetStream.fn = JetStream.prototype = {
     this.table = match[1];
     
     // Insert a new row
-    if (typeof obj != "undefined") {
+    if (typeof obj == "object") {
       JetStream.adaptor.save(this.table, obj);
       obj[JetStream.adaptor.primaryKey] = JetStream.adaptor.lastInsertID;
       this.dataset = [obj];
@@ -55,10 +58,17 @@ JetStream.fn = JetStream.prototype = {
       var where = WHERE[match[2]];
       var query = "SELECT * FROM " + this.table + " WHERE " + match[1] + " " + where[0] + " ?";
       this.dataset = JetStream.adaptor.query(query, [where[1].replace(':value', match[4])]);
-
+    }
+    
+    // Test for SQL
+    else if (match = JetStream.regex.SQL.exec(expr)) {
+      var params = (arguments.length > 1 && typeof arguments[1] != "undefined") ? Array.prototype.slice.call(arguments, 1) : [];
+      this.dataset = JetStream.adaptor.query(expr, params);
+    }
+    
     // Get all data for table
-    } else {
-      if (!(this.table in JetStream.CACHE)) {
+    else {
+      if (!JetStream.CACHE.hasOwnProperty(this.table)) {
         JetStream.CACHE[this.table] = JetStream.adaptor.all(this.table);
       }
       this.dataset = JetStream.CACHE[this.table].slice(0);
@@ -115,4 +125,3 @@ JetStream.fn.init.prototype = JetStream.fn;
 window.jet = window.JetStream = JetStream;
 
 })(window);
-

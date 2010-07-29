@@ -56,3 +56,8 @@ test("Updating", function() {
 test("Filtering", function() {
   equals(jet("magical_creatures").filter(function(creature) { return (creature.age < 200); }).length, 3, "Select all creatures younger than 200");
 })
+
+test("Querying", function() {
+  equals(jet("SELECT * FROM magical_creatures").length, 5, "Select all creatures");
+  equals(jet("SELECT * FROM magical_creatures WHERE species = ?", 'Dragon').length, 2, "Select all dragons");
+})

@@ -39,19 +39,23 @@ JetStreamAirAdaptor.prototype = {
     return this.query("SELECT * FROM " + table);
   },
   
-  query: function(query, params) {
+  query: function(query) {
+    var params = [];
+    if (arguments.length == 2) {
+      params = toString.call(arguments[1]) === "[object Array]" ? arguments[1] : [arguments[1]];
+    } else if (arguments.length > 2) {
+      params = Array.prototype.slice.call(arguments, 1);
+    }
+    
     var statement = new air.SQLStatement();
 		statement.sqlConnection = this.connection;
 		statement.text = query;
 		
-		if (params) {
-			for (var key in params) {
-				statement.parameters[key] = params[key];
-			}
+		for (var x = 0; x < params.length; x++) {
+			statement.parameters[x] = params[x];
 		}
 
 		try {
-			log(query, params);
 			statement.execute();
 			var result = statement.getResult();
 			this.lastInsertID = result.lastInsertRowID;
